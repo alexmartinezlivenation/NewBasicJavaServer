@@ -1,15 +1,18 @@
 package main.java.server;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Date;
 
 public class Server {
+    private static ServerSocket server;
+    private static Socket connection;
+    private static ObjectOutputStream output;
+    private static InputStream input;
+
     public static void main(String[] args) {
         int portNum = 5000;
-        String directory;
+        String directory = null;
 
         for (int index=0; index<(args.length-1); index++) {
 
@@ -20,25 +23,78 @@ public class Server {
                 directory = args[index+1];
             }
         }
-        new Server(portNum);
+
+        try {
+            server = new ServerSocket(portNum);
+            while (true) {
+                try {
+                    waitForConnection();
+                    setupStreams();
+                    handleCommunication();
+                }
+                catch (EOFException eofException) {
+                    showMessage("\n Server ended the connection!");
+                }
+                finally {
+                    closeAndCleanup();
+                }
+            }
+
+        }
+        catch(IOException ioException) {
+            ioException.printStackTrace();
+        }
     }
 
-    public Server(int portNum) {
+    private static void waitForConnection() throws IOException {
+        showMessage("Debug: Waiting for someone to connect...\n");
+        connection = server.accept();
+        showMessage("Debug: Now connected to " + connection.getInetAddress().getHostName());
+    }
+
+    private static void setupStreams() throws IOException {
+        output = new ObjectOutputStream(connection.getOutputStream());
+        output.flush();
+        input = connection.getInputStream();
+        showMessage("\nDebug: Streams are now set up! \n");
+    }
+
+    private static void handleCommunication() throws IOException {
+        String CRLF = "\r\n";
+        String message = "Debug: You are now connected! ";
+        showMessage(message);
+        BufferedReader br = new BufferedReader(new InputStreamReader(input));
+        do {
+            message = br.readLine();
+            showMessage("Debug: CLIENT - " + message);
+        }while(!message.trim().isEmpty());
+        messageToClient("HTTP/1.1 200 OK" + CRLF);
+    }
+
+    private static void messageToClient(String message) {
         try {
-            ServerSocket sSocket = new ServerSocket(portNum);
-            System.out.println("Server started at: " + new Date() + " on port " + portNum);
-
-            //Wait for client to connect
-            Socket socket = sSocket.accept();
-
-            //Create the streams
-            PrintWriter output = new PrintWriter(socket.getOutputStream(), true);
-
-            //Tell the client that they have connected
-            output.println("You have connected at: " + new Date());
-
-        } catch (IOException e) {
-            System.out.println("Error: " + e);
+            output.writeObject(message);
+            output.flush();
+            showMessage("\nDebug: Server - " + message);
         }
+        catch (IOException ioException) {
+            showMessage("\nERROR: can't send message");
+        }
+    }
+
+    private static void closeAndCleanup() {
+        showMessage("\nDebug: Closing...");
+        try {
+            output.close();
+            input.close();
+            connection.close();
+        }
+        catch (IOException ioException){
+            ioException.printStackTrace();
+        }
+    }
+
+    private static void showMessage(String message) {
+        System.out.println(message);
     }
 }
