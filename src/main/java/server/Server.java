@@ -7,7 +7,7 @@ import java.net.Socket;
 public class Server {
     private static ServerSocket server;
     private static Socket connection;
-    private static ObjectOutputStream output;
+    private static PrintWriter output;
     private static InputStream input;
 
     public static void main(String[] args) {
@@ -53,7 +53,7 @@ public class Server {
     }
 
     private static void setupStreams() throws IOException {
-        output = new ObjectOutputStream(connection.getOutputStream());
+        output = new PrintWriter(connection.getOutputStream());
         output.flush();
         input = connection.getInputStream();
         showMessage("\nDebug: Streams are now set up! \n");
@@ -72,14 +72,9 @@ public class Server {
     }
 
     private static void messageToClient(String message) {
-        try {
-            output.writeObject(message);
-            output.flush();
-            showMessage("\nDebug: Server - " + message);
-        }
-        catch (IOException ioException) {
-            showMessage("\nERROR: can't send message");
-        }
+        output.write(message);
+        output.flush();
+        showMessage("\nDebug: Server - " + message);
     }
 
     private static void closeAndCleanup() {
