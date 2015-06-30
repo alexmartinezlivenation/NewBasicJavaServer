@@ -1,5 +1,7 @@
 package main.java.server.response;
 
+import main.java.server.request.Request;
+
 public interface Response {
 
     public void setHeaders(String headers);
@@ -8,4 +10,6 @@ public interface Response {
     public String getBody();
 
     public String getMessage();
+
+    void createResponse(Request request, String directory);
 }

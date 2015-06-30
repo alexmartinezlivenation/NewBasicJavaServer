@@ -28,7 +28,12 @@ public class BasicRequest implements Request {
     }
 
     private void addToBody(String message) {
-
+        if (body == null) {
+            body = message;
+        }
+        else {
+            body = body + "\n" + message;
+        }
     }
 
     public boolean getHeaderFlag() {

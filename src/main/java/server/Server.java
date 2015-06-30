@@ -4,6 +4,7 @@ import main.java.server.request.BasicRequest;
 import main.java.server.request.Request;
 import main.java.server.response.BasicResponse;
 import main.java.server.response.Response;
+import main.java.server.service.ServerOptions;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -16,32 +17,21 @@ public class Server {
     private static Socket connection;
 
     public static void main(String[] args) {
-        int portNum = 5000;
-        String directory = null;
-
-        for (int index=0; index<(args.length-1); index++) {
-            if (args[index].equals("-p")) {
-                portNum = Integer.parseInt(args[index+1]);
-            }
-            if (args[index].equals("-d")) {
-                directory = args[index+1];
-            }
-        }
-
-        new Server().startServer(portNum, directory);
+        ServerOptions serverOptions = new ServerOptions(args);
+        new Server().startServer(serverOptions);
     }
 
-    public void startServer(final int portNum, String directory) {
+    public void startServer(final ServerOptions serverOptions) {
         final ExecutorService clientProcessingPool = Executors.newFixedThreadPool(10);
 
         Runnable serverTask = new Runnable() {
             @Override
             public void run() {
                 try {
-                    server = new ServerSocket(portNum);
+                    server = new ServerSocket(serverOptions.getPortNum());
                     while (true) {
                         waitForConnection();
-                        clientProcessingPool.submit(new ClientTask(connection));
+                        clientProcessingPool.submit(new ClientTask(connection, serverOptions.getDirectory()));
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -64,9 +54,11 @@ public class Server {
         private final Socket clientSocket;
         private PrintWriter output;
         private InputStream input;
+        private String directory;
 
-        private ClientTask(Socket connection) {
+        private ClientTask(Socket connection, String directory) {
             this.clientSocket = connection;
+            this.directory = directory;
         }
 
         @Override
@@ -91,10 +83,11 @@ public class Server {
         }
 
         private void handleCommunication() throws IOException {
-            Request request = new BasicRequest();
-
             String CRLF = "\r\n";
             showMessage("Debug: You are now connected! ");
+
+            Request request = new BasicRequest();
+
             BufferedReader br = new BufferedReader(new InputStreamReader(input));
             String message;
             do {
@@ -104,8 +97,7 @@ public class Server {
             }while(!message.trim().isEmpty());
 
             Response response = new BasicResponse();
-            response.setHeaders("HTTP/1.1 200 OK");
-            response.setBody("file1 contents");
+            response.createResponse(request, directory);
             messageToClient(response.getMessage());
         }
 
