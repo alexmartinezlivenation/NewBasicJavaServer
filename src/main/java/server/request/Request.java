@@ -1,14 +1,28 @@
 package main.java.server.request;
 
-import java.io.IOException;
+import java.util.Map;
 
-public interface Request {
+public class Request {
+    private Map<String, String> headers;
+    private String body;
 
-    public void setHeaders(String headers);
-    public void setBody(String body);
-    public void addLine(String message);
-    public void setHeaderFlag(boolean headerFlag);
-    public String getHeaders();
-    public String getBody();
-    public boolean getHeaderFlag();
+    public Map<String, String> getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
+    }
+
+    public String getRequestLine() {
+        return headers.get("Request-Line");
+    }
 }

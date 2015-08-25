@@ -25,12 +25,4 @@ public class ServerOptions {
     public String getDirectory() {
         return directory;
     }
-
-    public void setPortNum(int portNum) {
-        this.portNum = portNum;
-    }
-
-    public void setDirectory(String directory) {
-        this.directory = directory;
-    }
 }

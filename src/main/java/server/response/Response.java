@@ -1,15 +1,31 @@
 package main.java.server.response;
 
-import main.java.server.request.Request;
+public class Response {
+    private String body;
+    private String headers;
 
-public interface Response {
+    public String getBody() {
+        return body;
+    }
 
-    public void setHeaders(String headers);
-    public void setBody(String body);
-    public String getHeaders();
-    public String getBody();
+    public void setBody(String body) {
+        this.body = body;
+    }
 
-    public String getMessage();
+    public String getHeaders() {
+        return headers;
+    }
 
-    void createResponse(Request request, String directory);
+    public void setHeaders(String headers) {
+        this.headers = headers;
+    }
+
+    public String getMessage() {
+        //if (body != null) {
+        //    return headers + "\r\n\r\n" + body;
+        //}
+        //else {
+            return headers + "\r\n";
+        //}
+    }
 }
